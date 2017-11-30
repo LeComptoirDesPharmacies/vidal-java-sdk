@@ -24,7 +24,7 @@ uploadArchives {
     repositories.mavenDeployer {
         pom.groupId = 'fr.lecomptoirdespharmacies'
         pom.artifactId = 'vidal-java-sdk'
-        pom.version = '0.1.6'
+        pom.version = '0.2.0'
         configuration = configurations.deployerJars
         repository(url: "git:releases://git@bitbucket.org:lecomptoirdespharmacies/maven_repository.git")
         snapshotRepository(url: "git:snapshots://git@bitbucket.org:lecomptoirdespharmacies/maven_repository.git")

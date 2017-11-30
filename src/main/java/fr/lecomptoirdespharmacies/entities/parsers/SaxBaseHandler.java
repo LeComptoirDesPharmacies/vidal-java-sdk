@@ -27,7 +27,7 @@ public class SaxBaseHandler extends DefaultHandler {
 
         this.elementStack.push(qName);
 
-        // Get all entries in xml file create a package object for each
+        // Get all entries in xml file create a base object for each
         if("entry".equals(qName)){
             Base _base = new Base();
             this.objectStack.push(_base);
@@ -48,7 +48,7 @@ public class SaxBaseHandler extends DefaultHandler {
             String currentElement = currentElement();
             String currentParent = currentElementParent();
 
-            /* Bind xml value to package object
+            /* Bind xml value to base object
              * There isn't all xml field here, add field if you want more
              */
             if("entry".equals(currentParent)) {

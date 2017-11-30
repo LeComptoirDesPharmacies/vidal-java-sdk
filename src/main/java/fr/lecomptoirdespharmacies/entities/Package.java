@@ -7,13 +7,7 @@ import java.math.BigDecimal;
  * Java class for Vidal XML Package
  * There isn't all xml field here, add attribute if you want more
  */
-public class Package extends BaseEntity {
-
-    /**
-     * Package identifier
-     * XML attribute : vidal:id
-     */
-    public Long vidalId = null;
+public class Package extends AbstractBase {
 
     /**
      * Package name
@@ -129,5 +123,10 @@ public class Package extends BaseEntity {
      * XML attribute : vidal:lppr
      */
     public String lppr = null;
+
+    /**
+     * XML attribute : vidal:storageType
+     */
+    public StorageType storageType = null;
 
 }

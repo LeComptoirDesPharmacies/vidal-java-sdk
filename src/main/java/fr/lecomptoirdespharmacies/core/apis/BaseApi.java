@@ -2,7 +2,7 @@ package fr.lecomptoirdespharmacies.core.apis;
 
 import fr.lecomptoirdespharmacies.VidalApi;
 import fr.lecomptoirdespharmacies.core.helpers.RestHelper;
-import fr.lecomptoirdespharmacies.entities.BaseEntity;
+import fr.lecomptoirdespharmacies.entities.AbstractBase;
 import org.apache.commons.lang3.StringUtils;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +16,10 @@ public abstract class BaseApi {
      */
     private VidalApi vidalApi;
 
+    /**
+     * Contains url optional queries
+     * Example : ?key1=value1&key2=value2
+     */
     private HashMap<String,String> queries;
 
     /**
@@ -72,7 +76,7 @@ public abstract class BaseApi {
         clearQueries();
     }
 
-    protected <T extends BaseEntity> List<T> doRequest(String key, Class cls) throws Exception{
+    protected <T extends AbstractBase> List<T> doRequest(String key, Class cls) throws Exception{
         RestHelper restHelper = new RestHelper(this.vidalApi);
         return restHelper.doRequest(key, this.queries, this.params, cls);
     }

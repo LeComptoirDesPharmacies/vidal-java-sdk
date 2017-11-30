@@ -1,15 +1,19 @@
 package fr.lecomptoirdespharmacies.core.apis;
 
 import fr.lecomptoirdespharmacies.VidalApi;
+import fr.lecomptoirdespharmacies.core.enums.PackageAggregate;
 import fr.lecomptoirdespharmacies.core.enums.PackageStatus;
 import fr.lecomptoirdespharmacies.core.enums.PackageTypes;
 import fr.lecomptoirdespharmacies.core.enums.SearchFilter;
 import fr.lecomptoirdespharmacies.core.helpers.ListHelper;
+import fr.lecomptoirdespharmacies.entities.AbstractBase;
+import fr.lecomptoirdespharmacies.entities.Base;
 import fr.lecomptoirdespharmacies.entities.Package;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URLEncoder;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Do request for retrieve Package
@@ -18,6 +22,10 @@ public class PackageApi extends BaseApi {
 
 
     private final Class cls = Package.class;
+
+
+    // Use base class before get Package by id
+    private final Class base = Base.class;
 
     /**
      * Instance of vidal Api with Configuration
@@ -35,10 +43,13 @@ public class PackageApi extends BaseApi {
      * @throws Exception
      */
     public Package get(Long vidalId) throws Exception{
+        String AGGREGATE = "aggregate";
         this.clear();
         this.addParams(0, vidalId.toString());
 
-        // Get package throw error if too many object otherwise return null package not found
+        // Aggregate
+        this.addQuery(AGGREGATE, PackageAggregate.STORAGE.name());
+
         return (Package) ListHelper.getObject(doRequest("get_package", cls));
     }
 
@@ -72,7 +83,7 @@ public class PackageApi extends BaseApi {
         if(status != null) {
             this.addQuery("status", status.name());
         }
-        return doRequest("search_package_query", cls);
+        return baseToPackage(doRequest("search_package_query", base));
     }
 
     /**
@@ -92,6 +103,23 @@ public class PackageApi extends BaseApi {
         this.addQuery("code",code);
         this.addQuery("filter",SearchFilter.PACKAGE.name());
 
-        return doRequest("search_package_code", cls);
+        return baseToPackage(doRequest("search_package_code", base));
+
+    }
+
+    /**
+     * Do request to transform Base Entity to Package
+     * @param entities  Entity to get
+     * @return          Packages
+     */
+    private List<Package> baseToPackage(List<Base> entities){
+        return entities.stream()
+                .map(e -> {
+                    try {
+                        return get(e.vidalId);
+                    } catch (Exception ex){
+                        throw new RuntimeException(ex);
+                    }
+                }).collect(Collectors.toList());
     }
 }

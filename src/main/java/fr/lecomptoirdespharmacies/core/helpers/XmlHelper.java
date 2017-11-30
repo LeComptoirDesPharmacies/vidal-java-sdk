@@ -1,8 +1,11 @@
 package fr.lecomptoirdespharmacies.core.helpers;
 
-import fr.lecomptoirdespharmacies.entities.BaseEntity;
-import fr.lecomptoirdespharmacies.entities.parsers.SaxPackageHandler;
+import fr.lecomptoirdespharmacies.entities.AbstractBase;
+import fr.lecomptoirdespharmacies.entities.Base;
 import fr.lecomptoirdespharmacies.entities.Package;
+import fr.lecomptoirdespharmacies.entities.parsers.SaxBaseHandler;
+import fr.lecomptoirdespharmacies.entities.parsers.SaxPackageHandler;
+
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.ByteArrayInputStream;
@@ -15,7 +18,7 @@ public class XmlHelper {
 
     private SAXParserFactory factory = SAXParserFactory.newInstance();
 
-    public <T extends BaseEntity> List<T> xmlToObjects(String xml, Class<T> cls) throws Exception{
+    public <T extends AbstractBase> List<T> xmlToObjects(String xml, Class<T> cls) throws Exception{
 
         InputStream stream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
 
@@ -40,7 +43,15 @@ public class XmlHelper {
                 saxParser.parse(stream, handler);
                 return (List<T>) handler.packages;
             } catch (Exception e){
-                return new ArrayList<T>();
+                e.printStackTrace();
+            }
+        } else if (cls.isInstance(Base.class.newInstance())){
+            try {
+                SaxBaseHandler handler = new SaxBaseHandler();
+                saxParser.parse(stream, handler);
+                return (List<T>) handler.baseEntities;
+            } catch (Exception e){
+                e.printStackTrace();
             }
         }
         return null;

@@ -1,7 +1,7 @@
 package fr.lecomptoirdespharmacies.core.helpers;
 
 import fr.lecomptoirdespharmacies.VidalApi;
-import fr.lecomptoirdespharmacies.entities.BaseEntity;
+import fr.lecomptoirdespharmacies.entities.AbstractBase;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -31,7 +31,7 @@ public class RestHelper {
      * @return          List of Object T
      * @throws Exception
      */
-    public <T extends BaseEntity> List<T> doRequest(String key, HashMap<String, String> queries, TreeMap<Integer, String> params, Class cls) throws Exception{
+    public <T extends AbstractBase> List<T> doRequest(String key, HashMap<String, String> queries, TreeMap<Integer, String> params, Class cls) throws Exception{
 
         UrlHelper urlHelper = new UrlHelper(vidalApi);
 

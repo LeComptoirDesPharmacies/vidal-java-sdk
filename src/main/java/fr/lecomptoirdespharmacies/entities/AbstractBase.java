@@ -4,18 +4,24 @@ package fr.lecomptoirdespharmacies.entities;
 /**
  * Here we have common attribute between entities
  */
-public abstract class BaseEntity {
+public abstract class AbstractBase {
 
     /**
-     * Package identifier
+     * Identifier
      * XML attribute : id
      */
     public String id = null;
 
     /**
-     * Package title
+     * Title
      * XML attribute : title
      */
     public String title = null;
+
+    /**
+     *  Vidal identifier
+     * XML attribute : vidal:id
+     */
+    public Long vidalId = null;
 
 }

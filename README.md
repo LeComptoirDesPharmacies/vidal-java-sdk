@@ -37,7 +37,7 @@ public static void main(String[] args){
     vidalApi.config.app_key = "YOUR VIDAL APP KEY";
     try {
         Package dolipraneliquiz  = vidalApi.packageApi.searchByCode("3400927897474");
-        List<Package> packages = vidalApi.packageApi.searchByName("dentifrice", null, PackageStatus.NEW, PackageTypes.NON_PHARMACEUTICAL);
+        List<Package> packages = vidalApi.packageApi.searchByName("dentifrice", "", PackageStatus.NEW, PackageTypes.NON_PHARMACEUTICAL);
     } catch (Exception e){
         System.out.print(e);
     }

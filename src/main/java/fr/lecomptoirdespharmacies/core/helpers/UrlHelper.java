@@ -4,6 +4,7 @@ import fr.lecomptoirdespharmacies.VidalApi;
 import fr.lecomptoirdespharmacies.core.enums.RequestType;
 import org.apache.commons.lang3.StringUtils;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -35,7 +36,7 @@ public class UrlHelper {
         return vidalApi.config.baseUrl;
     }
 
-    public String getStrUrl(String key, HashMap<String,String> queries, TreeMap<Integer,String> params ) throws Exception{
+    public String getStrUrl(String key, HashMap<String,List<String>> queries, TreeMap<Integer,String> params ) throws Exception{
         return this.getFullUrl(key, queries, params);
     }
 
@@ -69,12 +70,18 @@ public class UrlHelper {
      * @param queries   All strings queries
      * @return          Url with queries
      */
-    private String getUrlWithQueries( String url, HashMap<String,String> queries){
+    private String getUrlWithQueries( String url, HashMap<String,List<String>> queries){
 
         // get all queries and parse it to "&key1=value1&key2=value2..."
         String queryStr = queries.entrySet()
                         .stream()
-                        .map(entry -> "&"+entry.getKey()+"="+entry.getValue())
+                        .map(entry -> {
+                                 return entry.getValue()
+                                         .stream().map(value ->
+                                                 "&"+entry.getKey()+"="+value
+                                         ).collect(joining());
+                                }
+                        )
                 .collect(joining());
 
         return url + queryStr;
@@ -103,7 +110,7 @@ public class UrlHelper {
      * @return          Full url string
      * @throws Exception
      */
-    private String getFullUrl (String key, HashMap<String,String> queries, TreeMap<Integer,String> params) throws Exception{
+    private String getFullUrl (String key, HashMap<String,List<String>> queries, TreeMap<Integer,String> params) throws Exception{
 
         // Base url set in conf file
         String baseUrl = getBaseUrl();

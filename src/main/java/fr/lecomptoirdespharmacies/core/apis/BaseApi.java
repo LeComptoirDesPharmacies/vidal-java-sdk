@@ -1,9 +1,12 @@
 package fr.lecomptoirdespharmacies.core.apis;
 
 import fr.lecomptoirdespharmacies.VidalApi;
+import fr.lecomptoirdespharmacies.core.helpers.ListHelper;
 import fr.lecomptoirdespharmacies.core.helpers.RestHelper;
 import fr.lecomptoirdespharmacies.entities.AbstractBase;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
@@ -20,7 +23,7 @@ public abstract class BaseApi {
      * Contains url optional queries
      * Example : ?key1=value1&key2=value2
      */
-    private HashMap<String,String> queries;
+    private HashMap<String, List<String>> queries;
 
     /**
      * TreeMap who contains url params by appear order in url. Start to 0.
@@ -34,7 +37,7 @@ public abstract class BaseApi {
 
     public BaseApi(VidalApi vidalApi){
         this.vidalApi = vidalApi;
-        this.queries = new HashMap<String, String>();
+        this.queries = new HashMap<String, List<String>>();
     }
 
     /**
@@ -50,18 +53,29 @@ public abstract class BaseApi {
 
 
     /**
-     * Add string query in a hashmap 
+     * Add list of values for the same key in hashmap
+     * @param key       Query key
+     * @param values     Query values
+     */
+    protected void addQuery(final String key, final List<String> values){
+        if((key != null && StringUtils.isNotEmpty(key)) && ( values != null && values.size() > 0)){
+            this.queries.merge(key,values, ListHelper::mergeList);
+        }
+    }
+
+    /**
+     * Add value in hashmap
      * @param key       Query key
      * @param value     Query value
      */
     protected void addQuery(final String key, final String value){
         if((key != null && StringUtils.isNotEmpty(key)) && ( value != null && StringUtils.isNotEmpty(value))){
-            this.queries.put(key,value);
+            this.queries.merge(key, Arrays.asList(value), ListHelper::mergeList);
         }
     }
 
     protected void clearQueries(){
-        this.queries = new HashMap<String, String>();
+        this.queries = new HashMap<String, List<String>>();
     }
 
     protected void clearParams(){

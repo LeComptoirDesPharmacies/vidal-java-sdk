@@ -31,7 +31,7 @@ public class RestHelper {
      * @return          List of Object T
      * @throws Exception
      */
-    public <T extends AbstractBase> List<T> doRequest(String key, HashMap<String, String> queries, TreeMap<Integer, String> params, Class cls) throws Exception{
+    public <T extends AbstractBase> List<T> doRequest(String key, HashMap<String, List<String>> queries, TreeMap<Integer, String> params, Class cls) throws Exception{
 
         UrlHelper urlHelper = new UrlHelper(vidalApi);
 

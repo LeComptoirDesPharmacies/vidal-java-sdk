@@ -6,12 +6,12 @@ import fr.lecomptoirdespharmacies.core.enums.PackageStatus;
 import fr.lecomptoirdespharmacies.core.enums.PackageTypes;
 import fr.lecomptoirdespharmacies.core.enums.SearchFilter;
 import fr.lecomptoirdespharmacies.core.helpers.ListHelper;
-import fr.lecomptoirdespharmacies.entities.AbstractBase;
 import fr.lecomptoirdespharmacies.entities.Base;
 import fr.lecomptoirdespharmacies.entities.Package;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,6 +26,11 @@ public class PackageApi extends BaseApi {
 
     // Use base class before get Package by id
     private final Class base = Base.class;
+
+    private final List<String> AGGREGATE_LIST = Arrays.asList(
+            PackageAggregate.STORAGE.name(),
+            PackageAggregate.PRODUCT.name()
+    );
 
     /**
      * Instance of vidal Api with Configuration
@@ -43,13 +48,11 @@ public class PackageApi extends BaseApi {
      * @throws Exception
      */
     public Package get(Long vidalId) throws Exception{
-        String AGGREGATE = "aggregate";
         this.clear();
         this.addParams(0, vidalId.toString());
 
         // Aggregate
-        this.addQuery(AGGREGATE, PackageAggregate.STORAGE.name());
-        this.addQuery(AGGREGATE, PackageAggregate.PRODUCT.name());
+        this.addQuery("aggregate", AGGREGATE_LIST);
 
         return (Package) ListHelper.getObject(doRequest("get_package", cls));
     }
@@ -76,7 +79,7 @@ public class PackageApi extends BaseApi {
         startswith = URLEncoder.encode(startswith,"UTF-8");
 
         this.clear();
-        this.addQuery("q",query);
+        this.addQuery("q", query);
         this.addQuery("startwith",startswith);
         if(type != null) {
             this.addQuery("type", type.name());
@@ -101,8 +104,8 @@ public class PackageApi extends BaseApi {
         code = URLEncoder.encode(code,"UTF-8");
 
         this.clear();
-        this.addQuery("code",code);
-        this.addQuery("filter",SearchFilter.PACKAGE.name());
+        this.addQuery("code", code);
+        this.addQuery("filter", SearchFilter.PACKAGE.name());
 
         return baseToPackage(doRequest("search_package_code", base));
 

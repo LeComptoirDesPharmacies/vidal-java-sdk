@@ -129,4 +129,9 @@ public class Package extends AbstractBase {
      */
     public StorageType storageType = null;
 
+    /**
+     * XML attribute : vidal:ammType
+     */
+    public String ammType = null;
+
 }

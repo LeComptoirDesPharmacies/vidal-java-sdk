@@ -207,6 +207,11 @@ public class SaxPackageHandler extends DefaultHandler {
                         _package.storageType.value = (_package.storageType.value != null ?
                                 _package.storageType.value : value);
                     }
+                } else if(this.category.equals(EntryCategories.PRODUCT.name())){
+                    if("vidal:ammType".equals(currentElement)){
+                        Package _package = (Package) this.objectStack.peek();
+                        _package.ammType = (_package.ammType != null ? _package.ammType : value);
+                    }
                 }
             }
         } catch (Exception e){

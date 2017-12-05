@@ -49,6 +49,7 @@ public class PackageApi extends BaseApi {
 
         // Aggregate
         this.addQuery(AGGREGATE, PackageAggregate.STORAGE.name());
+        this.addQuery(AGGREGATE, PackageAggregate.PRODUCT.name());
 
         return (Package) ListHelper.getObject(doRequest("get_package", cls));
     }

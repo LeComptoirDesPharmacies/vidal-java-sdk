@@ -46,6 +46,11 @@ public class SaxPackageHandler extends DefaultHandler {
         if("entry".equals(qName)) {
             if (attributes.getValue("vidal:categories") != null) {
                 this.category = attributes.getValue("vidal:categories");
+                if(this.category.equals(EntryCategories.STORAGE.name())){
+                    Package _package = (Package) this.objectStack.peek();
+                    Storage _storage = new Storage();
+                    _package.storages.add(_storage);
+                }
             }
         }
 
@@ -88,7 +93,8 @@ public class SaxPackageHandler extends DefaultHandler {
                 StorageType _storageType = new StorageType();
                 _storageType.name = attributes.getValue("name") != null ?  attributes.getValue("name") : "";
                 Package _package = (Package) this.objectStack.peek();
-                _package.storageType = _storageType;
+                Storage lastStorage = _package.storages.get(_package.storages.size() -1);
+                lastStorage.type = _storageType;
             }
         }
     }
@@ -109,107 +115,96 @@ public class SaxPackageHandler extends DefaultHandler {
             /* Bind xml value to package object
              * There isn't all xml field here, add field if you want more
              */
+
+            // Get current package
+            Package _package = (Package) this.objectStack.peek();
+
             if("entry".equals(currentParent)) {
                 if(this.category.equals(EntryCategories.PACKAGE.name())) {
                     if ("id".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.id = (_package.id != null ?
                                 _package.id : value);
 
                     } else if ("title".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.title = (_package.title != null ?
                                 _package.title +" "+ value: value);
                     } else if ("vidal:id".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.vidalId = (_package.vidalId != null ?
                                 _package.vidalId : Long.decode(value));
                     } else if ("vidal:name".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.name = (_package.name != null ?
                                 _package.name + " " + value : value);
                     } else if ("vidal:dispensationPlace".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.dispensationPlace.value = (_package.dispensationPlace.value != null ?
                                 _package.dispensationPlace.value : value);
                     } else if ("vidal:itemType".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.itemType.value = (_package.itemType.value != null ?
                                 _package.itemType.value : value);
                     } else if ("vidal:cip".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.cip = (_package.cip != null ?
                                 _package.cip : value);
                     } else if ("vidal:publicPrice".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.publicPrice = (_package.publicPrice != null ?
                                 _package.publicPrice : new BigDecimal(value));
                     } else if ("vidal:vatRate".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.vatRate = (_package.vatRate != null ?
                                 _package.vatRate : Float.parseFloat(value));
                     } else if ("vidal:pharmacistPrice".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.pharmacistPrice = (_package.pharmacistPrice != null ?
                                 _package.pharmacistPrice : new BigDecimal(value));
                     } else if ("vidal:otc".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.otc = (_package.otc != null ?
                                 _package.otc : Boolean.valueOf(value));
                     } else if ("vidal:cip13".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.cip13 = (_package.cip13 != null ?
                                 _package.cip13 : value);
                     } else if ("vidal:ean".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.ean = (_package.ean != null ?
                                 _package.ean : value);
                     } else if ("vidal:shortLabel".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.shortLabel = (_package.shortLabel != null ?
                                 _package.shortLabel + " " + value : value);
                     } else if ("vidal:marketStatus".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.marketStatus.value = (_package.marketStatus.value != null ?
                                 _package.marketStatus.value : value);
                     } else if ("vidal:company".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.company.name = (_package.company.name != null ?
                                 _package.company.name + " " + value : value);
                     } else if ("vidal:refundRate".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.refundRate = (_package.refundRate != null ?
                                 _package.refundRate : value);
                     } else if ("vidal:drugInSport".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.drugInSport = (_package.drugInSport != null ?
                                 _package.drugInSport : Boolean.valueOf(value));
                     } else if ("vidal:narcoticPrescription".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.narcoticPrescription = (_package.narcoticPrescription != null ?
                                 _package.narcoticPrescription : Boolean.valueOf(value));
                     } else if ("vidal:vmp".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.vmp = (_package.vmp != null ?
                                 _package.vmp + " " + value : value);
                     } else if ("vidal:ucd".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.ucd = (_package.ucd != null ?
                                 _package.ucd + " " + value : value);
                     } else if ("vidal:lppr".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
                         _package.lppr = (_package.lppr != null ?
                                 _package.lppr : value);
                     }
                 } else if(this.category.equals(EntryCategories.STORAGE.name())) {
+                    Storage lastStorage = _package.storages.get(_package.storages.size() -1);
                     if ("vidal:storageType".equals(currentElement)) {
-                        Package _package = (Package) this.objectStack.peek();
-                        _package.storageType.value = (_package.storageType.value != null ?
-                                _package.storageType.value : value);
+                        lastStorage.type.value = (lastStorage.type.value != null ?
+                                lastStorage.type.value : value);
+                    }
+                    if ("vidal:unpacked".equals(currentElement)) {
+                        lastStorage.unpacked = (lastStorage.unpacked != null ?
+                                lastStorage.unpacked : Boolean.valueOf(value));
+                    }
+                    if ("vidal:storageDuration".equals(currentElement)) {
+                        lastStorage.duration = (lastStorage.duration != null ?
+                                lastStorage.duration : value);
                     }
                 } else if(this.category.equals(EntryCategories.PRODUCT.name())){
                     if("vidal:ammType".equals(currentElement)){
-                        Package _package = (Package) this.objectStack.peek();
                         _package.ammType = (_package.ammType != null ? _package.ammType : value);
                     }
                 }

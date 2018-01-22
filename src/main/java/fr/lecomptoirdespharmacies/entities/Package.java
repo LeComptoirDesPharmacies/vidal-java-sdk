@@ -2,6 +2,8 @@ package fr.lecomptoirdespharmacies.entities;
 
 import fr.lecomptoirdespharmacies.entities.subentities.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Java class for Vidal XML Package
@@ -125,9 +127,9 @@ public class Package extends AbstractBase {
     public String lppr = null;
 
     /**
-     * XML attribute : vidal:storageType
+     * XML attribute : vidal:categories="STORAGE"
      */
-    public StorageType storageType = null;
+    public List<Storage> storages = new ArrayList<>();
 
     /**
      * XML attribute : vidal:ammType

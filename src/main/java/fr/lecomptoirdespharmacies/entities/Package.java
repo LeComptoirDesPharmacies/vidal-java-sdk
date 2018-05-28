@@ -136,4 +136,10 @@ public class Package extends AbstractBase {
      */
     public String ammType = null;
 
+    /**
+     * Manufacturer price
+     * XML attribute : vidal:manufacturerPrice
+     */
+    public BigDecimal manufacturerPrice = null;
+
 }

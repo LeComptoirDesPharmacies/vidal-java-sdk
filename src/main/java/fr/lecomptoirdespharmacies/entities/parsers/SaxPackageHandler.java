@@ -188,6 +188,9 @@ public class SaxPackageHandler extends DefaultHandler {
                     } else if ("vidal:lppr".equals(currentElement)) {
                         _package.lppr = (_package.lppr != null ?
                                 _package.lppr : value);
+                    } else if ("vidal:manufacturerPrice".equals(currentElement)) {
+                        _package.manufacturerPrice = (_package.manufacturerPrice != null ?
+                                _package.manufacturerPrice : new BigDecimal(value));
                     }
                 } else if(this.category.equals(EntryCategories.STORAGE.name())) {
                     Storage lastStorage = _package.storages.get(_package.storages.size() -1);

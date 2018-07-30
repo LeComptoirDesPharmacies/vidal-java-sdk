@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static fr.lecomptoirdespharmacies.core.Constant.GET_PACKAGE;
+import static fr.lecomptoirdespharmacies.core.Constant.SEARCH_PACKAGE_CODE;
+import static fr.lecomptoirdespharmacies.core.Constant.SEARCH_PACKAGE_QUERY;
 import static java.util.stream.Collectors.joining;
 
 public class UrlHelper {
@@ -24,9 +27,9 @@ public class UrlHelper {
     private Map<String, String[]> requests = new HashMap<String, String[]>(){{
 
         // Package Api request
-        put("search_package_code", new String[]{"/search", RequestType.GET.toString()});
-        put("search_package_query", new String[]{"/packages", RequestType.GET.toString()});
-        put("get_package", new String[]{"/package/%s", RequestType.GET.toString()});
+        put(SEARCH_PACKAGE_CODE, new String[]{"/search", RequestType.GET.toString()});
+        put(SEARCH_PACKAGE_QUERY, new String[]{"/packages", RequestType.GET.toString()});
+        put(GET_PACKAGE, new String[]{"/package/%s", RequestType.GET.toString()});
     }};
 
     private String getBaseUrl() throws Exception{

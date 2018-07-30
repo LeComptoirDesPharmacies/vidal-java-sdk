@@ -15,22 +15,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static fr.lecomptoirdespharmacies.core.Constant.AGGREGATE_LIST;
+
 /**
  * Do request for retrieve Package
  */
 public class PackageApi extends BaseApi {
 
-
     private final Class cls = Package.class;
-
 
     // Use base class before get Package by id
     private final Class base = Base.class;
-
-    private final List<String> AGGREGATE_LIST = Arrays.asList(
-            PackageAggregate.STORAGE.name(),
-            PackageAggregate.PRODUCT.name()
-    );
 
     /**
      * Instance of vidal Api with Configuration

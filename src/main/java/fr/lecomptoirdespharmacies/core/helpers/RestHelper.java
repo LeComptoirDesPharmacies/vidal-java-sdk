@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
@@ -42,8 +43,13 @@ public class RestHelper {
         connection.setRequestMethod(urlHelper.getRequestType(key));
 
         int responseCode = connection.getResponseCode();
+
+        if (responseCode == 204) {
+            return Collections.EMPTY_LIST;
+        }
+
         InputStream is;
-        if (responseCode != 200 && responseCode != 204) {
+        if (responseCode != 200) {
             is = connection.getErrorStream();
         } else {
             is = connection.getInputStream();

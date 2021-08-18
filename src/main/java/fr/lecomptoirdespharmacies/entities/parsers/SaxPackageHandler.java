@@ -28,6 +28,7 @@ public class SaxPackageHandler extends DefaultHandler {
 
     private String category;
 
+
     public void startElement(String uri, String localName,
                              String qName, Attributes attributes) throws SAXException {
 
@@ -74,10 +75,20 @@ public class SaxPackageHandler extends DefaultHandler {
              //TODO: do somethings or not
             }
         } else if("vidal:marketStatus".equals(qName)){
-            MarketStatus _marketStatus = new MarketStatus();
-            _marketStatus.name = attributes.getValue("name") != null ?  attributes.getValue("name") : "";
-            Package _package = (Package) this.objectStack.peek();
-            _package.marketStatus = _marketStatus;
+            if (this.category.equals(EntryCategories.PACKAGE.name())){
+                MarketStatus _marketStatus = new MarketStatus();
+                _marketStatus.name = attributes.getValue("name") != null ?  attributes.getValue("name") : "";
+                Package _package = (Package) this.objectStack.peek();
+                _package.marketStatus = _marketStatus;
+            }
+        } else if("vidal:refundRate".equals(qName)){
+            if (this.category.equals(EntryCategories.PACKAGE.name())){
+                Refund _refund = new Refund();
+                _refund.name = attributes.getValue("name") != null ?  attributes.getValue("name") : "";
+                _refund.rate = Integer.parseInt(attributes.getValue("rate") != null ?  attributes.getValue("rate") : "");
+                Package _package = (Package) this.objectStack.peek();
+                _package.refund = _refund;
+            }
         } else if ("vidal:itemType".equals(qName)){
             ItemType _itemType = new ItemType();
             _itemType.name = attributes.getValue("name") != null ?  attributes.getValue("name") : "";
@@ -171,8 +182,8 @@ public class SaxPackageHandler extends DefaultHandler {
                         _package.company.name = (_package.company.name != null ?
                                 _package.company.name + " " + value : value);
                     } else if ("vidal:refundRate".equals(currentElement)) {
-                        _package.refundRate = (_package.refundRate != null ?
-                                _package.refundRate : value);
+                        _package.refund.value = (_package.refund.value != null ?
+                                _package.refund.value : value);
                     } else if ("vidal:drugInSport".equals(currentElement)) {
                         _package.drugInSport = (_package.drugInSport != null ?
                                 _package.drugInSport : Boolean.valueOf(value));

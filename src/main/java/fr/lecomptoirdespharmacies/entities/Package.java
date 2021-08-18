@@ -115,10 +115,10 @@ public class Package extends AbstractBase {
     public Company company = null;
 
     /**
-     * Refund rate
+     * Refund
      * XML attribute : vidal:refundRate
      */
-    public String refundRate = null;
+    public Refund refund = null;
 
 
     /**

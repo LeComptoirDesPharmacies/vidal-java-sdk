@@ -12,7 +12,7 @@ public class RefundRate {
      * Refund rate
      * XML attribute : vidal:refundRate
      */
-    public int rate;
+    public Integer rate;
 
     /**
      * Refund value

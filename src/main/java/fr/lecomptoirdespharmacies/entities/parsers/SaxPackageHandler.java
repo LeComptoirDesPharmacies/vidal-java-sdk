@@ -11,6 +11,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Stack;
 
 /**
@@ -84,7 +85,7 @@ public class SaxPackageHandler extends DefaultHandler {
             if (this.category.equals(EntryCategories.PACKAGE.name())){
                 RefundRate _refundRate = new RefundRate();
                 _refundRate.name = attributes.getValue("name") != null ?  attributes.getValue("name") : "";
-                _refundRate.rate = Integer.parseInt(attributes.getValue("rate") != null ?  attributes.getValue("rate") : "");
+                _refundRate.rate = Optional.ofNullable(attributes.getValue("rate")).map(Integer::parseInt).orElse(null);
                 Package _package = (Package) this.objectStack.peek();
                 _package.refundRate = _refundRate;
             }

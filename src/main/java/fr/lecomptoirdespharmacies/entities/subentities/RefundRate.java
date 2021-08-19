@@ -1,6 +1,6 @@
 package fr.lecomptoirdespharmacies.entities.subentities;
 
-public class Refund {
+public class RefundRate {
 
     /**
      * Refund name

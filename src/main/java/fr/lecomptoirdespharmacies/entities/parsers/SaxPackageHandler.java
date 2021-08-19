@@ -8,7 +8,6 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import java.io.Console;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,11 +82,11 @@ public class SaxPackageHandler extends DefaultHandler {
             }
         } else if("vidal:refundRate".equals(qName)){
             if (this.category.equals(EntryCategories.PACKAGE.name())){
-                Refund _refund = new Refund();
-                _refund.name = attributes.getValue("name") != null ?  attributes.getValue("name") : "";
-                _refund.rate = Integer.parseInt(attributes.getValue("rate") != null ?  attributes.getValue("rate") : "");
+                RefundRate _refundRate = new RefundRate();
+                _refundRate.name = attributes.getValue("name") != null ?  attributes.getValue("name") : "";
+                _refundRate.rate = Integer.parseInt(attributes.getValue("rate") != null ?  attributes.getValue("rate") : "");
                 Package _package = (Package) this.objectStack.peek();
-                _package.refund = _refund;
+                _package.refundRate = _refundRate;
             }
         } else if ("vidal:itemType".equals(qName)){
             ItemType _itemType = new ItemType();
@@ -182,8 +181,8 @@ public class SaxPackageHandler extends DefaultHandler {
                         _package.company.name = (_package.company.name != null ?
                                 _package.company.name + " " + value : value);
                     } else if ("vidal:refundRate".equals(currentElement)) {
-                        _package.refund.value = (_package.refund.value != null ?
-                                _package.refund.value : value);
+                        _package.refundRate.value = (_package.refundRate.value != null ?
+                                _package.refundRate.value : value);
                     } else if ("vidal:drugInSport".equals(currentElement)) {
                         _package.drugInSport = (_package.drugInSport != null ?
                                 _package.drugInSport : Boolean.valueOf(value));

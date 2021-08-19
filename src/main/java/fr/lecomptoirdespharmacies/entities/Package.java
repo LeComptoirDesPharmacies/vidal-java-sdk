@@ -118,7 +118,7 @@ public class Package extends AbstractBase {
      * Refund
      * XML attribute : vidal:refundRate
      */
-    public Refund refund = null;
+    public RefundRate refundRate = null;
 
 
     /**

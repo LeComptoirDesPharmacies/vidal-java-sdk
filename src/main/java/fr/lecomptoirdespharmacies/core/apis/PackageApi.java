@@ -1,7 +1,6 @@
 package fr.lecomptoirdespharmacies.core.apis;
 
 import fr.lecomptoirdespharmacies.VidalApi;
-import fr.lecomptoirdespharmacies.core.enums.PackageAggregate;
 import fr.lecomptoirdespharmacies.core.enums.PackageStatus;
 import fr.lecomptoirdespharmacies.core.enums.PackageTypes;
 import fr.lecomptoirdespharmacies.core.enums.SearchFilter;
@@ -11,7 +10,6 @@ import fr.lecomptoirdespharmacies.entities.Package;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URLEncoder;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,13 +41,13 @@ public class PackageApi extends BaseApi {
      * @throws Exception
      */
     public Package get(Long vidalId) throws Exception{
-        this.clear();
-        this.addParams(0, vidalId.toString());
+        RequestParameters requestParameters = new RequestParameters();
+        requestParameters.addPathParameter(0, vidalId.toString());
 
         // Aggregate
-        this.addQuery("aggregate", AGGREGATE_LIST);
+        requestParameters.addQueryParameter("aggregate", AGGREGATE_LIST);
 
-        return (Package) ListHelper.getObject(doRequest("get_package", cls));
+        return (Package) ListHelper.getObject(doRequest("get_package", cls, requestParameters));
     }
 
     /**
@@ -73,16 +71,16 @@ public class PackageApi extends BaseApi {
         query = URLEncoder.encode(query,"UTF-8");
         startswith = URLEncoder.encode(startswith,"UTF-8");
 
-        this.clear();
-        this.addQuery("q", query);
-        this.addQuery("startwith",startswith);
+        RequestParameters requestParameters = new RequestParameters();
+        requestParameters.addQueryParameter("q", query);
+        requestParameters.addQueryParameter("startwith",startswith);
         if(type != null) {
-            this.addQuery("type", type.name());
+            requestParameters.addQueryParameter("type", type.name());
         }
         if(status != null) {
-            this.addQuery("status", status.name());
+            requestParameters.addQueryParameter("status", status.name());
         }
-        return baseToPackage(doRequest("search_package_query", base));
+        return baseToPackage(doRequest("search_package_query", base, requestParameters));
     }
 
     /**
@@ -98,11 +96,11 @@ public class PackageApi extends BaseApi {
 
         code = URLEncoder.encode(code,"UTF-8");
 
-        this.clear();
-        this.addQuery("code", code);
-        this.addQuery("filter", SearchFilter.PACKAGE.name());
+        RequestParameters requestParameters = new RequestParameters();
+        requestParameters.addQueryParameter("code", code);
+        requestParameters.addQueryParameter("filter", SearchFilter.PACKAGE.name());
 
-        return baseToPackage(doRequest("search_package_code", base));
+        return baseToPackage(doRequest("search_package_code", base, requestParameters));
 
     }
 

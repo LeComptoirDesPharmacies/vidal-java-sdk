@@ -19,6 +19,13 @@ dependencies {
     deployerJars "ar.com.synergian:wagon-git:0.2.5"
 }
 
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
 uploadArchives {
     configuration = configurations.archives
     repositories.mavenDeployer {

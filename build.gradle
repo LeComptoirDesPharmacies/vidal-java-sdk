@@ -1,11 +1,12 @@
 group 'fr.lecomptoirdespharmacies'
-version '0.2.7'
+version '0.2.8'
 
 apply plugin: 'java'
 apply plugin: 'maven'
 
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 configurations {
     deployerJars
@@ -31,7 +32,7 @@ uploadArchives {
     repositories.mavenDeployer {
         pom.groupId = 'fr.lecomptoirdespharmacies'
         pom.artifactId = 'vidal-java-sdk'
-        pom.version = '0.2.7'
+        pom.version = '0.2.8'
         configuration = configurations.deployerJars
         repository(url: "git:releases://git@bitbucket.org:lecomptoirdespharmacies/maven_repository.git")
         snapshotRepository(url: "git:snapshots://git@bitbucket.org:lecomptoirdespharmacies/maven_repository.git")

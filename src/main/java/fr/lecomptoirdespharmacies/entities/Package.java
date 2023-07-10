@@ -2,6 +2,7 @@ package fr.lecomptoirdespharmacies.entities;
 
 import fr.lecomptoirdespharmacies.entities.subentities.*;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,12 @@ public class Package extends AbstractBase {
      * XML attribute : vidal:name
      */
     public String name = null;
+
+    /**
+     * Package last update date
+     * XML attribute : vidal:updated
+     */
+    public Instant updated = null;
 
     /**
      * Place where package is dispensed

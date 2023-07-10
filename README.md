@@ -44,6 +44,15 @@ public static void main(String[] args){
 }
 ```
 
+How to build & deploy
+-------------
+
+```
+./gradlew build
+./gradlew uploadArchives
+
+```
+
 License 
 -----------
 Distributes under [MIT license](http://www.opensource.org/licenses/mit-license.php), see LICENSE file.

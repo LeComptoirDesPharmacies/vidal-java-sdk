@@ -9,6 +9,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -145,6 +147,9 @@ public class SaxPackageHandler extends DefaultHandler {
                     } else if ("vidal:name".equals(currentElement)) {
                         _package.name = (_package.name != null ?
                                 _package.name + " " + value : value);
+                    } else if ("vidal:updated".equals(currentElement)) {
+                        _package.updated = (_package.updated != null ?
+                                _package.updated : Instant.parse(value));
                     } else if ("vidal:dispensationPlace".equals(currentElement)) {
                         _package.dispensationPlace.value = (_package.dispensationPlace.value != null ?
                                 _package.dispensationPlace.value : value);

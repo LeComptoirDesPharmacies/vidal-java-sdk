@@ -141,15 +141,15 @@ public class SaxPackageHandler extends DefaultHandler {
                     } else if ("title".equals(currentElement)) {
                         _package.title = (_package.title != null ?
                                 _package.title +" "+ value: value);
+                    } else if ("updated".equals(currentElement)) {
+                        _package.updated = (_package.updated != null ?
+                                _package.updated : Instant.parse(value));
                     } else if ("vidal:id".equals(currentElement)) {
                         _package.vidalId = (_package.vidalId != null ?
                                 _package.vidalId : Long.decode(value));
                     } else if ("vidal:name".equals(currentElement)) {
                         _package.name = (_package.name != null ?
                                 _package.name + " " + value : value);
-                    } else if ("vidal:updated".equals(currentElement)) {
-                        _package.updated = (_package.updated != null ?
-                                _package.updated : Instant.parse(value));
                     } else if ("vidal:dispensationPlace".equals(currentElement)) {
                         _package.dispensationPlace.value = (_package.dispensationPlace.value != null ?
                                 _package.dispensationPlace.value : value);

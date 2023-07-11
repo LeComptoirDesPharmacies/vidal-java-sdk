@@ -1,6 +1,8 @@
 package fr.lecomptoirdespharmacies.entities;
 
 
+import java.time.Instant;
+
 /**
  * Here we have common attribute between entities
  */
@@ -23,5 +25,12 @@ public abstract class AbstractBase {
      * XML attribute : vidal:id
      */
     public Long vidalId = null;
+
+
+    /**
+     * Updated date
+     * XML attribute : updated
+     */
+    public Instant updated = null;
 
 }

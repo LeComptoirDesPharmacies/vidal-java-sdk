@@ -19,12 +19,6 @@ public class Package extends AbstractBase {
     public String name = null;
 
     /**
-     * Package last update date
-     * XML attribute : vidal:updated
-     */
-    public Instant updated = null;
-
-    /**
      * Place where package is dispensed
      * XML attribute : vidal:dispensationPlace
      */

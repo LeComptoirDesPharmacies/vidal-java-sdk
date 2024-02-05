@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.net.URLEncoder;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static fr.lecomptoirdespharmacies.core.Constant.AGGREGATE_LIST;
@@ -117,6 +118,8 @@ public class PackageApi extends BaseApi {
                     } catch (Exception ex){
                         throw new RuntimeException(ex);
                     }
-                }).collect(Collectors.toList());
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

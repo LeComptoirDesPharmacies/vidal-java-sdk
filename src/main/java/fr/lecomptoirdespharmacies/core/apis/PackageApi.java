@@ -10,6 +10,8 @@ import fr.lecomptoirdespharmacies.entities.Package;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URLEncoder;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -111,6 +113,10 @@ public class PackageApi extends BaseApi {
      * @return          Packages
      */
     private List<Package> baseToPackage(List<Base> entities){
+        if (Objects.isNull(entities)) {
+            return Collections.emptyList();
+        }
+
         return entities.stream()
                 .map(e -> {
                     try {

@@ -10,7 +10,6 @@ import fr.lecomptoirdespharmacies.entities.Package;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URLEncoder;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;

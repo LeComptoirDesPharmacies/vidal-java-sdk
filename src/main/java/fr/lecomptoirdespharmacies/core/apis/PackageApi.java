@@ -10,6 +10,7 @@ import fr.lecomptoirdespharmacies.entities.Base;
 import fr.lecomptoirdespharmacies.entities.Package;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
@@ -41,9 +42,9 @@ public class PackageApi extends BaseApi {
      * Get a package
      * @param vidalId   Package vidal id
      * @return          Package
-     * @throws Exception
+     * @throws VidalUnreachableException    if Vidal could not be reached
      */
-    public Package get(Long vidalId) throws Exception{
+    public Package get(Long vidalId) {
         RequestParameters requestParameters = new RequestParameters();
         requestParameters.addPathParameter(0, vidalId.toString());
 
@@ -60,19 +61,19 @@ public class PackageApi extends BaseApi {
      * @param status        Package status ( AVAILABLE, DELETED, ...)
      * @param type          Package type ( VIDAL, ACCESSORY, ...)
      * @return              List of package matching
-     * @throws Exception
+     * @throws VidalUnreachableException    if Vidal could not be reached
      */
-    public List<Package> searchByName(String query, String startswith, PackageStatus status, PackageTypes type) throws Exception{
+    public List<Package> searchByName(String query, String startswith, PackageStatus status, PackageTypes type) {
         if(StringUtils.isEmpty(query) && StringUtils.isEmpty(startswith)
                 && StringUtils.isEmpty(status.name()) && StringUtils.isEmpty(type.name())){
-            throw new Exception("Empty fields cannot do request");
+            throw new IllegalArgumentException("Empty fields cannot do request");
         }
         if(StringUtils.isNotEmpty(query) && StringUtils.isNotEmpty(startswith)){
-            throw new Exception("You need to choice between query and starts with.");
+            throw new IllegalArgumentException("You need to choice between query and starts with.");
         }
 
-        query = URLEncoder.encode(query,"UTF-8");
-        startswith = URLEncoder.encode(startswith,"UTF-8");
+        query = encode(query);
+        startswith = encode(startswith);
 
         RequestParameters requestParameters = new RequestParameters();
         requestParameters.addQueryParameter("q", query);
@@ -90,14 +91,15 @@ public class PackageApi extends BaseApi {
      * Search Package by code
      * @param code      Code ( CIP, ACL, CIP13 ... )
      * @return          Packages matching
+     * @throws VidalUnreachableException    if Vidal could not be reached
      */
-    public List<Package> searchByCode(String code) throws Exception{
+    public List<Package> searchByCode(String code) {
 
         if(code == null || StringUtils.isEmpty(code)) {
-            throw new Exception("Empty code cannot do request");
+            throw new IllegalArgumentException("Empty code cannot do request");
         }
 
-        code = URLEncoder.encode(code,"UTF-8");
+        code = encode(code);
 
         RequestParameters requestParameters = new RequestParameters();
         requestParameters.addQueryParameter("code", code);
@@ -105,6 +107,14 @@ public class PackageApi extends BaseApi {
 
         return baseToPackage(doRequest("search_package_code", base, requestParameters));
 
+    }
+
+    private String encode(String value) {
+        try {
+            return URLEncoder.encode(value, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("UTF-8 is not supported by this JVM", e);
+        }
     }
 
     /**
@@ -117,17 +127,9 @@ public class PackageApi extends BaseApi {
             return Collections.emptyList();
         }
 
+        // A failure here is not wrapped: burying it would hide why the search failed.
         return entities.stream()
-                .map(e -> {
-                    try {
-                        return get(e.vidalId);
-                    } catch (VidalUnreachableException ex){
-                        // Let it through: burying it here would hide why the search failed.
-                        throw ex;
-                    } catch (Exception ex){
-                        throw new RuntimeException(ex);
-                    }
-                })
+                .map(e -> get(e.vidalId))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }

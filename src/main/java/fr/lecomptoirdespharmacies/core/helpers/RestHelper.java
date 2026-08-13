@@ -1,6 +1,7 @@
 package fr.lecomptoirdespharmacies.core.helpers;
 
 import fr.lecomptoirdespharmacies.VidalApi;
+import fr.lecomptoirdespharmacies.core.exceptions.VidalResponseException;
 import fr.lecomptoirdespharmacies.core.exceptions.VidalUnreachableException;
 import fr.lecomptoirdespharmacies.entities.AbstractBase;
 import java.io.BufferedReader;
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,13 +36,13 @@ public class RestHelper {
      * @param <T>       Class who extend of BaseEntity class
      * @return          List of Object T
      * @throws VidalUnreachableException    if Vidal could not be reached
-     * @throws Exception
+     * @throws VidalResponseException       if its answer could not be read
      */
-    public <T extends AbstractBase> List<T> doRequest(String key, HashMap<String, List<String>> queries, TreeMap<Integer, String> params, Class cls) throws Exception{
+    public <T extends AbstractBase> List<T> doRequest(String key, HashMap<String, List<String>> queries, TreeMap<Integer, String> params, Class cls) {
 
         UrlHelper urlHelper = new UrlHelper(vidalApi);
 
-        URL url = new URL(urlHelper.getStrUrl(key,queries,params));
+        URL url = urlOf(urlHelper.getStrUrl(key,queries,params));
 
         Optional<String> resp = fetch(url, urlHelper.getRequestType(key));
 
@@ -51,6 +53,15 @@ public class RestHelper {
         XmlHelper xmlHelper = new XmlHelper();
 
         return xmlHelper.xmlToObjects(resp.get(), cls);
+    }
+
+    private URL urlOf(String url) {
+        try {
+            return new URL(url);
+        } catch (MalformedURLException e) {
+            // Never the url itself in the message: it carries app_id and app_key.
+            throw new IllegalStateException("Vidal base url is not a valid url", e);
+        }
     }
 
     /**

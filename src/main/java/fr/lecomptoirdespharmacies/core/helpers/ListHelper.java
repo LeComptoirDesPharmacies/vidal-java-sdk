@@ -1,5 +1,6 @@
 package fr.lecomptoirdespharmacies.core.helpers;
 
+import fr.lecomptoirdespharmacies.core.exceptions.VidalResponseException;
 import fr.lecomptoirdespharmacies.entities.AbstractBase;
 
 import java.util.*;
@@ -8,14 +9,17 @@ import java.util.stream.Stream;
 
 public class ListHelper {
 
-    public static <T extends AbstractBase>  T getObject(List<T> objects) throws Exception{
+    /**
+     * @throws VidalResponseException if Vidal returned more than the single element expected
+     */
+    public static <T extends AbstractBase>  T getObject(List<T> objects) {
         if(Objects.isNull(objects) || objects.isEmpty())
             return null;
 
         if(objects.size() == 1){
             return objects.get(0);
         } else {
-            throw new Exception("Too much element for this request.");
+            throw new VidalResponseException("Too much element for this request.", null);
         }
     }
 

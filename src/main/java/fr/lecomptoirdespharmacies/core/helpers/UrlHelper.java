@@ -32,14 +32,14 @@ public class UrlHelper {
         put(GET_PACKAGE, new String[]{"/package/%s", RequestType.GET.toString()});
     }};
 
-    private String getBaseUrl() throws Exception{
+    private String getBaseUrl() {
         if(StringUtils.isEmpty(vidalApi.config.baseUrl)){
-            throw new Exception ("vidalApi.config.baseUrl is not defined.");
+            throw new IllegalStateException ("vidalApi.config.baseUrl is not defined.");
         }
         return vidalApi.config.baseUrl;
     }
 
-    public String getStrUrl(String key, HashMap<String,List<String>> queries, TreeMap<Integer,String> params ) throws Exception{
+    public String getStrUrl(String key, HashMap<String,List<String>> queries, TreeMap<Integer,String> params ) {
         return this.getFullUrl(key, queries, params);
     }
 
@@ -51,15 +51,14 @@ public class UrlHelper {
      * Add authentication parameters to url string
      * @param url   Base Url with requested area
      * @return      Url with authentication in queries
-     * @throws Exception
      */
-    private String addAuthenticationKeys(String url) throws Exception{
+    private String addAuthenticationKeys(String url) {
         if(StringUtils.isEmpty(vidalApi.config.app_id)){
-            throw new Exception ("vidalApi.config.app_id is not defined.");
+            throw new IllegalStateException ("vidalApi.config.app_id is not defined.");
         }
 
         if(StringUtils.isEmpty(vidalApi.config.app_key)){
-            throw new Exception ("vidalApi.config.app_key is not defined.");
+            throw new IllegalStateException ("vidalApi.config.app_key is not defined.");
         }
 
         url += "?app_id="+vidalApi.config.app_id + "&app_key="+vidalApi.config.app_key;
@@ -97,9 +96,9 @@ public class UrlHelper {
      * @param params    Url parameters
      * @return          Formated url to String
      */
-    private String formatUrl(String baseUrl, String key, TreeMap<Integer,String> params) throws Exception{
+    private String formatUrl(String baseUrl, String key, TreeMap<Integer,String> params) {
         if(requests.get(key) == null ){
-            throw new Exception ("Invalid request key.");
+            throw new IllegalArgumentException ("Invalid request key.");
         }
         String request = String.format(requests.get(key)[0], params.entrySet().stream().map(Map.Entry::getValue).toArray());
         return baseUrl + request;
@@ -111,9 +110,8 @@ public class UrlHelper {
      * @param queries   All url strings queries
      * @param params    All url parameters
      * @return          Full url string
-     * @throws Exception
      */
-    private String getFullUrl (String key, HashMap<String,List<String>> queries, TreeMap<Integer,String> params) throws Exception{
+    private String getFullUrl (String key, HashMap<String,List<String>> queries, TreeMap<Integer,String> params) {
 
         // Base url set in conf file
         String baseUrl = getBaseUrl();

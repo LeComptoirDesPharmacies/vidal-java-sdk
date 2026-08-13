@@ -2,6 +2,7 @@ package fr.lecomptoirdespharmacies.core.helpers;
 
 import com.sun.net.httpserver.HttpServer;
 import fr.lecomptoirdespharmacies.VidalApi;
+import fr.lecomptoirdespharmacies.core.exceptions.VidalUnreachableException;
 import fr.lecomptoirdespharmacies.entities.Package;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static fr.lecomptoirdespharmacies.core.Constant.GET_PACKAGE;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -77,10 +79,36 @@ class RestHelperTest {
 
         long start = System.nanoTime();
 
-        assertThrows(SocketTimeoutException.class, () -> getPackage(vidalApi));
+        VidalUnreachableException exception =
+                assertThrows(VidalUnreachableException.class, () -> getPackage(vidalApi));
 
         long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
         assertTrue(elapsedMs < 10_000, "Call should have been cut short, took " + elapsedMs + "ms");
+        assertTrue(exception.getCause() instanceof SocketTimeoutException,
+                "Callers classify on the cause, it must be kept");
+    }
+
+    @Test
+    void unreachableVidalShouldNotLeakTheCredentialsCarriedByTheUrl() {
+        VidalApi vidalApi = buildVidalApi();
+        vidalApi.config.readTimeoutMs = 500;
+
+        VidalUnreachableException exception =
+                assertThrows(VidalUnreachableException.class, () -> getPackage(vidalApi));
+
+        assertFalse(exception.getMessage().contains("FAKE_APP_KEY"),
+                "Message goes to logs and error trackers: " + exception.getMessage());
+        assertFalse(exception.getMessage().contains("FAKE_APP_ID"), exception.getMessage());
+    }
+
+    @Test
+    void aSearchShouldNotBuryTheUnreachableVidalOfThePackagesItFetches() {
+        VidalApi vidalApi = buildVidalApi();
+        vidalApi.config.readTimeoutMs = 500;
+
+        // searchByCode fetches each hit through get(), whose failure used to come back wrapped.
+        assertThrows(VidalUnreachableException.class,
+                () -> vidalApi.packageApi.searchByCode("3400930000000"));
     }
 
     @Test

@@ -4,6 +4,7 @@ import fr.lecomptoirdespharmacies.VidalApi;
 import fr.lecomptoirdespharmacies.core.enums.PackageStatus;
 import fr.lecomptoirdespharmacies.core.enums.PackageTypes;
 import fr.lecomptoirdespharmacies.core.enums.SearchFilter;
+import fr.lecomptoirdespharmacies.core.exceptions.VidalUnreachableException;
 import fr.lecomptoirdespharmacies.core.helpers.ListHelper;
 import fr.lecomptoirdespharmacies.entities.Base;
 import fr.lecomptoirdespharmacies.entities.Package;
@@ -120,6 +121,9 @@ public class PackageApi extends BaseApi {
                 .map(e -> {
                     try {
                         return get(e.vidalId);
+                    } catch (VidalUnreachableException ex){
+                        // Let it through: burying it here would hide why the search failed.
+                        throw ex;
                     } catch (Exception ex){
                         throw new RuntimeException(ex);
                     }

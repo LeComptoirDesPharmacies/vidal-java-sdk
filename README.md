@@ -55,6 +55,19 @@ vidalApi.config.connectTimeoutMs = 3000;
 vidalApi.config.readTimeoutMs = 7000;
 ```
 
+Failing to reach Vidal — timeout, connection reset, unknown host — throws a
+`VidalUnreachableException`, which is unchecked and keeps the original `IOException` as its cause.
+Retrying it later may well succeed, unlike the other failures, which keep coming out as a plain
+exception:
+
+```
+try {
+    Package aPackage = vidalApi.packageApi.get(959354L);
+} catch (VidalUnreachableException e){
+    // Vidal is down or too slow: nothing to fix on the request itself
+}
+```
+
 How to build & deploy
 -------------
 

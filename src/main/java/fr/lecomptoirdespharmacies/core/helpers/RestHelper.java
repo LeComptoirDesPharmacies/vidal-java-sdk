@@ -1,8 +1,10 @@
 package fr.lecomptoirdespharmacies.core.helpers;
 
 import fr.lecomptoirdespharmacies.VidalApi;
+import fr.lecomptoirdespharmacies.core.exceptions.VidalUnreachableException;
 import fr.lecomptoirdespharmacies.entities.AbstractBase;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -10,6 +12,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.TreeMap;
 
 public class RestHelper {
@@ -30,6 +33,7 @@ public class RestHelper {
      * @param cls       Real type of returned class
      * @param <T>       Class who extend of BaseEntity class
      * @return          List of Object T
+     * @throws VidalUnreachableException    if Vidal could not be reached
      * @throws Exception
      */
     public <T extends AbstractBase> List<T> doRequest(String key, HashMap<String, List<String>> queries, TreeMap<Integer, String> params, Class cls) throws Exception{
@@ -38,37 +42,65 @@ public class RestHelper {
 
         URL url = new URL(urlHelper.getStrUrl(key,queries,params));
 
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        Optional<String> resp = fetch(url, urlHelper.getRequestType(key));
 
-        // Without these, a slow or silent Vidal holds the calling thread forever.
-        connection.setConnectTimeout(vidalApi.config.connectTimeoutMs);
-        connection.setReadTimeout(vidalApi.config.readTimeoutMs);
-
-        connection.setRequestMethod(urlHelper.getRequestType(key));
-
-        int responseCode = connection.getResponseCode();
-
-        if (responseCode == 204) {
+        if (!resp.isPresent()) {
             return Collections.EMPTY_LIST;
-        }
-
-        InputStream is;
-        if (responseCode != 200) {
-            is = connection.getErrorStream();
-        } else {
-            is = connection.getInputStream();
-        }
-
-        StringBuffer resp;
-        BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-        String line;
-        resp = new StringBuffer();
-        while ((line = br.readLine()) != null) {
-            resp.append(line);
         }
 
         XmlHelper xmlHelper = new XmlHelper();
 
-        return xmlHelper.xmlToObjects(resp.toString(), cls);
+        return xmlHelper.xmlToObjects(resp.get(), cls);
+    }
+
+    /**
+     * Reads the answer Vidal gives to a request.
+     * <p>
+     * Every way of failing to reach Vidal surfaces here as an {@link IOException} — timeout,
+     * connection reset, unknown host, answer cut short — and is the one failure callers usually
+     * want to tell apart, hence the dedicated exception. What Vidal answered is left to the caller
+     * to make sense of: an unreadable answer is not an unreachable Vidal.
+     *
+     * @return the answer body, or empty when Vidal answered it has no content
+     *
+     * @throws VidalUnreachableException if Vidal could not be reached
+     */
+    private Optional<String> fetch(URL url, String requestType) {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            // Without these, a slow or silent Vidal holds the calling thread forever.
+            connection.setConnectTimeout(vidalApi.config.connectTimeoutMs);
+            connection.setReadTimeout(vidalApi.config.readTimeoutMs);
+
+            connection.setRequestMethod(requestType);
+
+            int responseCode = connection.getResponseCode();
+
+            if (responseCode == 204) {
+                return Optional.empty();
+            }
+
+            InputStream is;
+            if (responseCode != 200) {
+                is = connection.getErrorStream();
+            } else {
+                is = connection.getInputStream();
+            }
+
+            StringBuffer resp = new StringBuffer();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    resp.append(line);
+                }
+            }
+
+            return Optional.of(resp.toString());
+        } catch (IOException e) {
+            // Never the full url: it carries app_id and app_key as query parameters.
+            throw new VidalUnreachableException(
+                    "Could not reach Vidal at " + url.getHost() + url.getPath() + " : " + e, e);
+        }
     }
 }

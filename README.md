@@ -44,6 +44,17 @@ public static void main(String[] args){
 }
 ```
 
+Timeouts
+-------------
+
+Calls to Vidal are bounded by a connect timeout of 5s and a read timeout of 10s.
+Both are adjustable, and `0` restores the previous behaviour of waiting forever:
+
+```
+vidalApi.config.connectTimeoutMs = 3000;
+vidalApi.config.readTimeoutMs = 7000;
+```
+
 How to build & deploy
 -------------
 

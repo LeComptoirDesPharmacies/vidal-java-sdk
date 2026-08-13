@@ -16,4 +16,16 @@ public class Configuration {
      * Base url to Vidal API
      */
     public String baseUrl = "http://api.vidal.fr/rest/api";
+
+    /**
+     * Maximum time, in milliseconds, to wait for the connection to Vidal to be established.
+     * 0 means an infinite wait.
+     */
+    public int connectTimeoutMs = 5_000;
+
+    /**
+     * Maximum time, in milliseconds, to wait for data once the connection to Vidal is established.
+     * 0 means an infinite wait.
+     */
+    public int readTimeoutMs = 10_000;
 }

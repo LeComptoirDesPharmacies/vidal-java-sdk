@@ -40,6 +40,10 @@ public class RestHelper {
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
+        // Without these, a slow or silent Vidal holds the calling thread forever.
+        connection.setConnectTimeout(vidalApi.config.connectTimeoutMs);
+        connection.setReadTimeout(vidalApi.config.readTimeoutMs);
+
         connection.setRequestMethod(urlHelper.getRequestType(key));
 
         int responseCode = connection.getResponseCode();

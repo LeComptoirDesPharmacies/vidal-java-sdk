@@ -63,7 +63,8 @@ Nothing this SDK raises is a checked exception, so callers only handle what they
 | Failure | Exception |
 | --- | --- |
 | Vidal could not be reached (timeout, connection reset, unknown host) | `VidalUnreachableException`, keeping the `IOException` as its cause |
-| Vidal answered, but the answer could not be read | `VidalResponseException` |
+| Vidal answered `5xx` or `429` | `VidalUnreachableException` |
+| Vidal answered another error status, or an answer that could not be read | `VidalResponseException` |
 | The request cannot be sent as asked | `IllegalArgumentException` |
 | `app_id`, `app_key` or `baseUrl` missing | `IllegalStateException` |
 
@@ -77,8 +78,9 @@ try {
 }
 ```
 
-A package Vidal does not know is **not** an error: it comes back as `null`, or as an empty list for
-the searches. A failure never masquerades as an empty result.
+A package Vidal does not know is **not** an error: a `204` or a `404` comes back as `null`, or as an
+empty list for the searches. A failure never masquerades as an empty result — error bodies are not
+parsed, since they would yield no entity and read exactly like "no such package".
 
 How to build & deploy
 -------------

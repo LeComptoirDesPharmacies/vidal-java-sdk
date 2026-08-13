@@ -6,16 +6,18 @@ import fr.lecomptoirdespharmacies.core.exceptions.VidalUnreachableException;
 import fr.lecomptoirdespharmacies.entities.AbstractBase;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 public class RestHelper {
 
@@ -68,13 +70,17 @@ public class RestHelper {
      * Reads the answer Vidal gives to a request.
      * <p>
      * Every way of failing to reach Vidal surfaces here as an {@link IOException} — timeout,
-     * connection reset, unknown host, answer cut short — and is the one failure callers usually
-     * want to tell apart, hence the dedicated exception. What Vidal answered is left to the caller
-     * to make sense of: an unreadable answer is not an unreachable Vidal.
+     * connection reset, unknown host, answer cut short — and so does an answer saying Vidal cannot
+     * serve us: both mean the data did not come, and both are worth retrying later.
+     * <p>
+     * Only a body that came with a 200 is returned. An error body is never parsed: it would yield
+     * no entity and read exactly like "Vidal knows no such package", turning an outage into a
+     * silently incomplete result.
      *
-     * @return the answer body, or empty when Vidal answered it has no content
+     * @return the answer body, or empty when Vidal has nothing for this request
      *
-     * @throws VidalUnreachableException if Vidal could not be reached
+     * @throws VidalUnreachableException if Vidal could not be reached, or refused to serve us
+     * @throws VidalResponseException    if Vidal rejected the request itself
      */
     private Optional<String> fetch(URL url, String requestType) {
         try {
@@ -88,19 +94,24 @@ public class RestHelper {
 
             int responseCode = connection.getResponseCode();
 
-            if (responseCode == 204) {
+            // No content, and nothing known under that identifier: a legitimate empty result.
+            if (responseCode == 204 || responseCode == 404) {
                 return Optional.empty();
             }
 
-            InputStream is;
+            if (responseCode == 429 || responseCode >= 500) {
+                throw new VidalUnreachableException(
+                        "Vidal cannot serve " + safe(url) + " right now, it answered " + responseCode);
+            }
+
             if (responseCode != 200) {
-                is = connection.getErrorStream();
-            } else {
-                is = connection.getInputStream();
+                throw new VidalResponseException(
+                        "Vidal rejected " + safe(url) + " with status " + responseCode, null);
             }
 
             StringBuffer resp = new StringBuffer();
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"))) {
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(connection.getInputStream(), "UTF-8"))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     resp.append(line);
@@ -109,9 +120,25 @@ public class RestHelper {
 
             return Optional.of(resp.toString());
         } catch (IOException e) {
-            // Never the full url: it carries app_id and app_key as query parameters.
-            throw new VidalUnreachableException(
-                    "Could not reach Vidal at " + url.getHost() + url.getPath() + " : " + e, e);
+            throw new VidalUnreachableException("Could not reach Vidal at " + safe(url) + " : " + e, e);
         }
+    }
+
+    /**
+     * The url as it can be shown in a log or an error tracker: {@code app_id} and {@code app_key}
+     * travel in the query string, everything else is what tells which call failed.
+     */
+    private String safe(URL url) {
+        String shown = url.getHost() + url.getPath();
+
+        if (Objects.isNull(url.getQuery())) {
+            return shown;
+        }
+
+        String query = Arrays.stream(url.getQuery().split("&"))
+                .filter(parameter -> !parameter.startsWith("app_id=") && !parameter.startsWith("app_key="))
+                .collect(Collectors.joining("&"));
+
+        return query.isEmpty() ? shown : shown + "?" + query;
     }
 }

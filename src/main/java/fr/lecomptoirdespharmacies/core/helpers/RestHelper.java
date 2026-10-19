@@ -6,6 +6,7 @@ import fr.lecomptoirdespharmacies.core.exceptions.VidalUnreachableException;
 import fr.lecomptoirdespharmacies.entities.AbstractBase;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -18,6 +19,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+
+import static fr.lecomptoirdespharmacies.core.Constant.GET_PACKAGE;
 
 public class RestHelper {
 
@@ -46,7 +49,14 @@ public class RestHelper {
 
         URL url = urlOf(urlHelper.getStrUrl(key,queries,params));
 
-        Optional<String> resp = fetch(url, urlHelper.getRequestType(key));
+        /*
+         * A 404 only says "no such package" on the one url naming a package. Anywhere else it says
+         * the url itself is wrong (a mistyped baseUrl, a path Vidal moved): read as an empty result,
+         * it would make every search come back empty and silently detach every product from Vidal.
+         */
+        boolean notFoundMeansUnknownPackage = GET_PACKAGE.equals(key);
+
+        Optional<String> resp = fetch(url, urlHelper.getRequestType(key), notFoundMeansUnknownPackage);
 
         if (!resp.isPresent()) {
             return Collections.EMPTY_LIST;
@@ -77,14 +87,17 @@ public class RestHelper {
      * no entity and read exactly like "Vidal knows no such package", turning an outage into a
      * silently incomplete result.
      *
+     * @param notFoundMeansUnknownPackage whether a 404 is a legitimate empty result for this url
+     *
      * @return the answer body, or empty when Vidal has nothing for this request
      *
      * @throws VidalUnreachableException if Vidal could not be reached, or refused to serve us
      * @throws VidalResponseException    if Vidal rejected the request itself
      */
-    private Optional<String> fetch(URL url, String requestType) {
+    private Optional<String> fetch(URL url, String requestType, boolean notFoundMeansUnknownPackage) {
+        HttpURLConnection connection = null;
         try {
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection = (HttpURLConnection) url.openConnection();
 
             // Without these, a slow or silent Vidal holds the calling thread forever.
             connection.setConnectTimeout(vidalApi.config.connectTimeoutMs);
@@ -94,8 +107,13 @@ public class RestHelper {
 
             int responseCode = connection.getResponseCode();
 
-            // No content, and nothing known under that identifier: a legitimate empty result.
-            if (responseCode == 204 || responseCode == 404) {
+            if (responseCode != 200) {
+                // Never parsed, but read to the end and closed so the connection can be reused.
+                discard(connection.getErrorStream());
+            }
+
+            // No content, or nothing known under that package identifier: a legitimate empty result.
+            if (responseCode == 204 || (responseCode == 404 && notFoundMeansUnknownPackage)) {
                 return Optional.empty();
             }
 
@@ -120,7 +138,29 @@ public class RestHelper {
 
             return Optional.of(resp.toString());
         } catch (IOException e) {
+            // The connection is in an unknown state: drop its socket rather than hand it back.
+            if (connection != null) {
+                connection.disconnect();
+            }
             throw new VidalUnreachableException("Could not reach Vidal at " + safe(url) + " : " + e, e);
+        }
+    }
+
+    /**
+     * Reads an error body to the end and closes it. Left unread, the socket is neither reused nor
+     * released until garbage collection, which a Vidal outage with retries turns into a leak.
+     */
+    private void discard(InputStream errorBody) {
+        if (errorBody == null) {
+            return;
+        }
+        byte[] buffer = new byte[4096];
+        try (InputStream in = errorBody) {
+            while (in.read(buffer) != -1) {
+                // Nothing to keep: the status already says what happened.
+            }
+        } catch (IOException ignored) {
+            // The status is what callers act on; a body we could not drain changes nothing.
         }
     }
 

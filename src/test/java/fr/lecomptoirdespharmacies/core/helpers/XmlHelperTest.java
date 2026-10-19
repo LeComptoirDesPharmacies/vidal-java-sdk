@@ -1,6 +1,7 @@
 package fr.lecomptoirdespharmacies.core.helpers;
 
 import fr.lecomptoirdespharmacies.core.exceptions.VidalResponseException;
+import fr.lecomptoirdespharmacies.entities.AbstractBase;
 import fr.lecomptoirdespharmacies.entities.Base;
 import fr.lecomptoirdespharmacies.entities.Package;
 import fr.lecomptoirdespharmacies.entities.subentities.Storage;
@@ -82,6 +83,13 @@ class XmlHelperTest {
 
         assertThrows(VidalResponseException.class,
                 () -> xmlHelper.xmlToObjects(truncated, Package.class));
+    }
+
+    @Test
+    void unsupportedEntity_ShouldBeACallerDefectNotAnUnreadableAnswer() {
+
+        assertThrows(IllegalArgumentException.class,
+                () -> xmlHelper.xmlToObjects(FAKE_GET_PACKAGE_XML, AbstractBase.class));
     }
 
 }

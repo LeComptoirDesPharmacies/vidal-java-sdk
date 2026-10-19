@@ -16,11 +16,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static fr.lecomptoirdespharmacies.core.Constant.AGGREGATE_LIST;
 import static fr.lecomptoirdespharmacies.core.Constant.GET_PACKAGE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -177,6 +179,48 @@ class RestHelperTest {
         answerWith(404, "");
 
         assertTrue(getPackages(buildVidalApi()).isEmpty());
+    }
+
+    /**
+     * A 404 on a search means the url is wrong (a mistyped baseUrl, a moved path), not that nothing
+     * matched. Read as an empty result, every search would come back empty and every product would
+     * be detached from Vidal without a single error.
+     */
+    @Test
+    void searchAnswering404ShouldFailRatherThanLookLikeNoMatch() {
+        answerWith(404, "<html>Not Found</html>");
+
+        VidalResponseException exception = assertThrows(VidalResponseException.class,
+                () -> buildVidalApi().packageApi.searchByCode("3400930000000"));
+
+        assertTrue(exception.getMessage().contains("404"), exception.getMessage());
+    }
+
+    /**
+     * An unread error body pins the socket until garbage collection. Drained, the connection goes
+     * back to the keep-alive pool: the next call to Vidal leaves from the same client port.
+     */
+    @Test
+    void errorStatusShouldHandTheConnectionBackForReuse() {
+        List<Integer> clientPorts = new CopyOnWriteArrayList<>();
+        server.removeContext("/");
+        server.createContext("/", exchange -> {
+            clientPorts.add(exchange.getRemoteAddress().getPort());
+            byte[] content = "<error>Service Unavailable</error>".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(503, content.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(content);
+            }
+            exchange.close();
+        });
+
+        VidalApi vidalApi = buildVidalApi();
+        assertThrows(VidalUnreachableException.class, () -> getPackage(vidalApi));
+        assertThrows(VidalUnreachableException.class, () -> getPackage(vidalApi));
+
+        assertEquals(2, clientPorts.size());
+        assertEquals(clientPorts.get(0), clientPorts.get(1),
+                "the second call should reuse the connection of the first: " + clientPorts);
     }
 
     @Test

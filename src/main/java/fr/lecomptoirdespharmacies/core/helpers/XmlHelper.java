@@ -1,5 +1,6 @@
 package fr.lecomptoirdespharmacies.core.helpers;
 
+import fr.lecomptoirdespharmacies.core.exceptions.VidalResponseException;
 import fr.lecomptoirdespharmacies.entities.AbstractBase;
 import fr.lecomptoirdespharmacies.entities.Base;
 import fr.lecomptoirdespharmacies.entities.Package;
@@ -11,50 +12,50 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 
 public class XmlHelper {
 
     private SAXParserFactory factory = SAXParserFactory.newInstance();
 
-    public <T extends AbstractBase> List<T> xmlToObjects(String xml, Class<T> cls) throws Exception{
+    /**
+     * Turns an answer from Vidal into entities.
+     *
+     * @throws VidalResponseException   if the answer could not be read
+     * @throws IllegalArgumentException if {@code cls} is not an entity this SDK can parse into
+     */
+    public <T extends AbstractBase> List<T> xmlToObjects(String xml, Class<T> cls) {
+
+        // Chosen before parsing: asking for an unsupported entity is a defect of the caller, not
+        // something wrong with the answer Vidal gave.
+        if (!Package.class.equals(cls) && !Base.class.equals(cls)) {
+            throw new IllegalArgumentException("Cannot parse a Vidal answer into " + cls.getName());
+        }
 
         InputStream stream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
 
-        SAXParser saxParser = factory.newSAXParser();
+        try {
+            SAXParser saxParser = factory.newSAXParser();
 
-        return castResponseToEntities(cls, stream, saxParser);
+            return parse(cls, stream, saxParser);
+        } catch (Exception e) {
+            // Unchecked ones included: whatever the parser lets escape means an answer we could not
+            // read, and must not reach callers as an unclassified RuntimeException. (The handlers
+            // themselves still swallow a value they cannot convert and leave that field unset.)
+            throw new VidalResponseException("Could not read the answer Vidal gave", e);
+        }
     }
 
-    /**
-     * Find instance of cls and parse xml to this class
-     * @param cls           Real type of returned class
-     * @param stream        XML input stream file
-     * @param saxParser     Sax parser
-     * @param <T>           Class who extend of BaseEntity class
-     * @return
-     * @throws Exception
-     */
-    private <T> List<T> castResponseToEntities(Class<T> cls, InputStream stream, SAXParser saxParser) throws Exception{
-        if(cls.isInstance(Package.class.newInstance())){
-            try {
-                SaxPackageHandler handler = new SaxPackageHandler();
-                saxParser.parse(stream, handler);
-                return (List<T>) handler.packages;
-            } catch (Exception e){
-                e.printStackTrace();
-            }
-        } else if (cls.isInstance(Base.class.newInstance())){
-            try {
-                SaxBaseHandler handler = new SaxBaseHandler();
-                saxParser.parse(stream, handler);
-                return (List<T>) handler.baseEntities;
-            } catch (Exception e){
-                e.printStackTrace();
-            }
+    private <T> List<T> parse(Class<T> cls, InputStream stream, SAXParser saxParser) throws Exception {
+        if (Package.class.equals(cls)) {
+            SaxPackageHandler handler = new SaxPackageHandler();
+            saxParser.parse(stream, handler);
+            return (List<T>) handler.packages;
         }
-        return null;
+
+        SaxBaseHandler handler = new SaxBaseHandler();
+        saxParser.parse(stream, handler);
+        return (List<T>) handler.baseEntities;
     }
 
 }

@@ -22,7 +22,7 @@ public abstract class BaseApi {
         this.vidalApi = vidalApi;
     }
 
-    protected <T extends AbstractBase> List<T> doRequest(String key, Class cls, RequestParameters requestParameters) throws Exception{
+    protected <T extends AbstractBase> List<T> doRequest(String key, Class cls, RequestParameters requestParameters) {
         RestHelper restHelper = new RestHelper(this.vidalApi);
         return restHelper.doRequest(key, requestParameters.getQueryParameters(), requestParameters.getPathParameters(), cls);
     }

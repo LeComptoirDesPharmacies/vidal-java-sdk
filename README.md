@@ -44,6 +44,46 @@ public static void main(String[] args){
 }
 ```
 
+Timeouts
+-------------
+
+Calls to Vidal are bounded by a connect timeout of 5s and a read timeout of 10s.
+Both are adjustable, and `0` restores the previous behaviour of waiting forever:
+
+```
+vidalApi.config.connectTimeoutMs = 3000;
+vidalApi.config.readTimeoutMs = 7000;
+```
+
+Errors
+-------------
+
+Nothing this SDK raises is a checked exception, so callers only handle what they care about:
+
+| Failure | Exception |
+| --- | --- |
+| Vidal could not be reached (timeout, connection reset, unknown host) | `VidalUnreachableException`, keeping the `IOException` as its cause |
+| Vidal answered `5xx` or `429` | `VidalUnreachableException` |
+| Vidal answered another error status (a `404` on a search included), or an answer that could not be read | `VidalResponseException` |
+| The request cannot be sent as asked | `IllegalArgumentException` |
+| `app_id`, `app_key` or `baseUrl` missing | `IllegalStateException` |
+
+Only the first one is worth retrying later, which is usually the single distinction callers need:
+
+```
+try {
+    Package aPackage = vidalApi.packageApi.get(959354L);
+} catch (VidalUnreachableException e){
+    // Vidal is down or too slow: nothing to fix on the request itself
+}
+```
+
+A package Vidal does not know is **not** an error: a `204` comes back as `null`, or as an empty list
+for the searches, and so does a `404` on `get(id)`. A `404` on a search is an error, though: it says
+the url is wrong (a mistyped `baseUrl`, a path Vidal moved), and reading it as "no match" would make
+every search come back empty without a word. A failure never masquerades as an empty result — error
+bodies are not parsed, since they would yield no entity and read exactly like "no such package".
+
 How to build & deploy
 -------------
 

@@ -1,0 +1,103 @@
+name: perform-release
+
+# Must be triggered from a release/v* branch (lcdp-release pushes the branch, then dispatches
+# this workflow). Same contract as medipim-java-sdk, adapted to this repo:
+#   - master is the only long-lived branch: no back-merge step.
+#   - the version lives in build.gradle (`version` and `pom.version`): it is set here from the
+#     branch name and committed on the release branch before the merge, so the tagged commit
+#     carries the version it publishes (what the manual `./gradlew uploadArchives` releases did).
+#   - the jar goes to the git-backed Maven repository bitbucket.org/lecomptoirdespharmacies/maven_repository
+#     through wagon-git (system `git` over SSH): the runner needs an SSH key allowed to push there.
+#
+# Secrets:
+#   MAVEN_REPOSITORY_SSH_KEY  private SSH key of an account with write access to maven_repository
+#                             (a Bitbucket repository access key is read-only, it will not do).
+
+on:
+  workflow_dispatch:
+
+jobs:
+  perform-release:
+    name: Perform release (version → merge → tag → publish)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Validate branch name
+        run: |
+          if [[ ! "${{ github.ref_name }}" =~ ^release/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::This workflow must be triggered from a release/vX.Y.Z branch (got: ${{ github.ref_name }})"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      # Gradle 4.8.1 wrapper: JDK 11 is the newest it runs on.
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Configure git
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git fetch origin master:master
+
+      - name: Extract release version
+        id: version
+        run: |
+          RELEASE_BRANCH="${{ github.ref_name }}"
+          NEW_VERSION="${RELEASE_BRANCH#release/}"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "version_number=${NEW_VERSION#v}" >> "$GITHUB_OUTPUT"
+          echo "release_branch=$RELEASE_BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Set the version in build.gradle
+        run: |
+          VERSION="${{ steps.version.outputs.version_number }}"
+          sed -r -i -e "s/^version '.*'/version '$VERSION'/" \
+                    -e "s/^(\s*)pom\.version = '.*'/\1pom.version = '$VERSION'/" build.gradle
+          if [[ "$(grep -c "'$VERSION'" build.gradle)" != "2" ]]; then
+            echo "::error::build.gradle does not carry version $VERSION twice (version + pom.version)"
+            exit 1
+          fi
+          if ! git diff --quiet -- build.gradle; then
+            git commit -m "Updating version to ${{ steps.version.outputs.new_version }}" build.gradle
+            git push origin "${{ steps.version.outputs.release_branch }}"
+          fi
+
+      - name: Build and test
+        run: ./gradlew build --no-daemon
+
+      - name: Merge release branch into master and tag
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          RELEASE_BRANCH="${{ steps.version.outputs.release_branch }}"
+          git checkout master
+          git merge "$RELEASE_BRANCH" -m "Merge $RELEASE_BRANCH into master"
+          git push origin master
+          git tag -a -m "Tagging for release $NEW_VERSION" "$NEW_VERSION"
+          git push origin "$NEW_VERSION"
+
+      - name: Delete release branch
+        run: git push origin --delete "${{ steps.version.outputs.release_branch }}"
+
+      - name: Checkout tag for publishing
+        run: git checkout "${{ steps.version.outputs.new_version }}"
+
+      - name: Install the SSH key for maven_repository
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.MAVEN_REPOSITORY_SSH_KEY }}" > ~/.ssh/id_maven_repository
+          chmod 600 ~/.ssh/id_maven_repository
+          ssh-keyscan -t rsa,ecdsa,ed25519 bitbucket.org >> ~/.ssh/known_hosts
+          printf 'Host bitbucket.org\n  IdentityFile ~/.ssh/id_maven_repository\n  IdentitiesOnly yes\n' >> ~/.ssh/config
+
+      - name: Publish to maven_repository
+        run: ./gradlew uploadArchives --no-daemon

@@ -93,6 +93,24 @@ How to build & deploy
 
 ```
 
+The wrapper is Gradle 4.8.1: run it with `JAVA_HOME` on a JDK 11 at most.
+
+How to release
+-------------
+
+Releases go through the `perform-release` GitHub workflow, driven by lcdp-release: the tool pushes a
+`release/vX.Y.Z` branch cut from `master` and dispatches the workflow on it. The workflow sets
+`X.Y.Z` in `build.gradle` (`version` and `pom.version`), merges the branch into `master`, tags
+`vX.Y.Z`, deletes the release branch, then publishes the jar to the git-backed Maven repository
+`bitbucket.org/lecomptoirdespharmacies/maven_repository` with `./gradlew uploadArchives`.
+
+The workflow needs one repository secret, `MAVEN_REPOSITORY_SSH_KEY`: the private SSH key of an
+account allowed to push to `maven_repository` (a Bitbucket repository access key is read-only and
+will not do).
+
+A release made by hand (`./gradlew uploadArchives` from a bumped `master`) must also push the
+`vX.Y.Z` tag: lcdp-release reads the tags to know what is released.
+
 License 
 -----------
 Distributes under [MIT license](http://www.opensource.org/licenses/mit-license.php), see LICENSE file.

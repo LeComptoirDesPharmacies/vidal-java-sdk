@@ -1,0 +1,37 @@
+name: Run java Test
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'bugfix/**'
+      - 'hotfix/**'
+      - 'release/**'
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  Test_application:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run tests
+        # `build` compiles, builds the sources/javadoc jars and runs the tests — all
+        # of what releases.yml does before publishing, and nothing that publishes.
+        # No signing secret needed: build.gradle skips the Sign tasks when
+        # GPG_SECRET_KEY is unset.
+        run: ./gradlew build

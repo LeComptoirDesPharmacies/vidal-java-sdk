@@ -84,14 +84,29 @@ the url is wrong (a mistyped `baseUrl`, a path Vidal moved), and reading it as "
 every search come back empty without a word. A failure never masquerades as an empty result — error
 bodies are not parsed, since they would yield no entity and read exactly like "no such package".
 
-How to build & deploy
+How to build
 -------------
 
 ```
 ./gradlew build
-./gradlew uploadArchives
-
 ```
+
+JDK 21 (Gradle 9 wrapper); the bytecode stays at Java 8 (`options.release = 8`).
+
+How to release
+-------------
+
+The SDK is published on Maven Central (Sonatype Central, group `fr.lecomptoirdespharmacies`),
+like offisante-java-sdk and medipim-java-sdk. A release is driven by lcdp-release: it bumps
+`version` in `build.gradle`, pushes `master` and the `vX.Y.Z` tag, and the `Publish Release`
+workflow (`releases.yml`) runs `./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository`
+on the tag. Central takes 15 to 40 minutes to serve the new version.
+
+By hand: bump `version` in `build.gradle`, commit on `master`, push the `vX.Y.Z` tag. Never push a
+tag whose version is already on Central, Sonatype refuses the upload.
+
+The workflows need the repository secrets `SONATYPE_USERNAME`, `SONATYPE_PASSWORD`,
+`GPG_SECRET_KEY` and `GPG_PASSPHRASE` (the same as offisante-java-sdk).
 
 License 
 -----------

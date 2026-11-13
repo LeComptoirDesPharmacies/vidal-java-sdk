@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'fr.lecomptoirdespharmacies'
-version = '0.2.11'
+version = '0.3.0'
 
 dependencies {
     // `api`: these were `compile` dependencies, consumers (the monolith) see them on their

@@ -1,0 +1,22 @@
+min_version = "2026.10"
+
+[settings]
+# Same policy as pnpm minimumReleaseAge: never resolve a tool version
+# published less than 3 days ago (exact pins are not filtered).
+minimum_release_age = "3d"
+
+# Versions: java from build.gradle toolchain (21) (gradle via ./gradlew)
+[tools]
+java = "temurin-21"
+
+[tasks.install]
+description = "Build and publish the jar to ~/.m2, for the projects that depend on it"
+run = "./gradlew publishToMavenLocal"
+
+[tasks.build]
+description = "Build the jar, without tests"
+run = "./gradlew assemble"
+
+[tasks.test]
+description = "Run unit tests"
+run = "./gradlew test"
